@@ -17,7 +17,7 @@
             <div id="heat" class='plot'></div>
         </div>
         <div v-for="(f, i) in friends" class="card">
-            <span class="cardTitle">{{f + '的日分布瀑布图'}}</span>
+            <span class="cardTitle">{{f + '的日分布面积图'}}</span>
             <div :id=getWaterFallName(i) class='plot'></div>
         </div>
         <br>
@@ -37,6 +37,7 @@
             return {
                 xAxis: {
                     line: false,
+                    tickCount: util.isMobile() ? 10 : 20,
                     grid: {
                         line: {
                             style: {
@@ -219,6 +220,28 @@
                 });
 
                 linePlot.render();
+            },
+
+            createArea (containerName, scatter, color) {
+                let data = scatter;
+                let areaPlot = new this.$G2Plot.Area(containerName, {
+                    data,
+                    xField: 'x',
+                    yField: 'y',
+                    xAxis: this.xAxis,
+                    yAxis: this.yAxis,
+                    legend: false,
+                    connectNulls: true,
+                    smooth: true,
+                    color: color
+                    // areaStyle: () => {
+                    //     return {
+                    //         fill: 'l(270) 0:#ffffff 0.5:#7ec2f3 1:#1890ff'
+                    //     };
+                    // }
+                });
+
+                areaPlot.render();
             },
 
             createHeat (containerName, heat) {
@@ -498,9 +521,37 @@
         computed: {
         },
         mounted () {
-            // fetchLine().then(data => {
-            //     this.createLine('line', data);
-            // });
+            fetchLine().then(data => {
+                console.log(data);
+                let areaData = [];
+                data.map(d => {
+                    if (d.y) {
+                        let exist = false;
+                        let personalData = [];
+                        let i = 0;
+                        for (; i < areaData.length; i++) {
+                            if (areaData[i].name === d.name) {
+                                exist = true;
+                                personalData = areaData[i].data;
+                                break;
+                            }
+                        }
+                        personalData.push({x: d.x, y: d.y});
+                        if (!exist) {
+                            areaData.push({
+                                name: d.name,
+                                data: personalData
+                            });
+                        } else {
+                            areaData[i].data = personalData;
+                        }
+                    }
+                });
+                areaData.map((d, i) => {
+                    let areaName = this.getWaterFallName(i);
+                    this.createArea(areaName, d.data, this.color[i]);
+                });
+            });
 
             fetchDynamicBar().then(data => {
                 this.dynamicBarData = data;
@@ -515,12 +566,12 @@
                 this.createHeat('heat', data);
             });
 
-            fetchWaterFall().then(data => {
-                data.map((waterFall, i) => {
-                    let waterFallName = this.getWaterFallName(i);
-                    this.createWaterFall(waterFallName, waterFall);
-                });
-            });
+            // fetchWaterFall().then(data => {
+            //     data.map((waterFall, i) => {
+            //         let waterFallName = this.getWaterFallName(i);
+            //         this.createWaterFall(waterFallName, waterFall);
+            //     });
+            // });
         }
     };
 </script>
