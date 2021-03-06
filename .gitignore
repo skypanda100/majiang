@@ -1,0 +1,6 @@
+/majiang-client/.idea
+/majiang-client/node_modules
+/majiang-client/dist
+/majiang-server/.idea
+/majiang-server/log
+/majiang-server/target
